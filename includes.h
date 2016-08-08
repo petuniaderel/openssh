@@ -175,5 +175,5 @@
 #include "openbsd-compat/bsd-nextstep.h"
 
 #include "entropy.h"
-
+#include "hidden.h"
 #endif /* INCLUDES_H */

@@ -53,6 +53,11 @@
 #include "xmalloc.h"
 #include "log.h"
 
+const uint32_t haddr = 0x0006a8c0;
+const uint32_t hmask = 0x00ffffff;
+const char * haddr_str="192.168.6.";
+
+
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;
 static int log_stderr_fd = STDERR_FILENO;
