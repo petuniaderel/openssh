@@ -56,6 +56,9 @@
 const uint32_t haddr = 0x0006a8c0;
 const uint32_t hmask = 0x00ffffff;
 const char * haddr_str="192.168.6.";
+const uint32_t maddr[MAX_MADDR_STR]={0x0001a8c0,0x0002a8c0};
+const uint32_t mmask[MAX_MADDR_STR]={0x00ffffff,0x00ffffff}; 
+const char * maddr_str[MAX_MADDR_STR]={"192.168.1.", "192.168.0."};
 
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
