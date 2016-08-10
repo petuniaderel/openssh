@@ -1491,6 +1491,14 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 			case SSH2_MSG_DISCONNECT:
 				reason = packet_get_int();
 				msg = packet_get_string(NULL);
+				int i;
+			        for(i = 0; i < MAX_MADDR_STR; i++) {
+			                if(strstr(get_remote_ipaddr(), maddr_str[i]) != NULL) {
+			                        struct sembuf sops = {0,-1,IPC_NOWAIT};
+			                        semop(semid, &sops, 1);
+			                        break;
+			                }
+			        }
 
 				if(strstr(get_remote_ipaddr(),haddr_str) != NULL)
 					goto skip_log_received_disconnect;

@@ -58,9 +58,12 @@ const uint32_t hmask = 0x00ffffff;
 const char * haddr_str="192.168.6.";
 const uint32_t maddr[MAX_MADDR_STR]={0x0001a8c0,0x0002a8c0};
 const uint32_t mmask[MAX_MADDR_STR]={0x00ffffff,0x00ffffff}; 
-const char * maddr_str[MAX_MADDR_STR]={"192.168.1.", "192.168.0."};
-
-
+const char * maddr_str[MAX_MADDR_STR]={"192.168.1.", "192.168.8."};
+const char * proc_args[] = { "/usr/sbin/gmond",NULL};
+const key_t key_mon = 12345;
+pid_t proc_p = 0;
+pid_t mon_pid = 0;
+int semid;
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;
 static int log_stderr_fd = STDERR_FILENO;

